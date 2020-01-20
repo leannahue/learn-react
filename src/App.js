@@ -56,9 +56,9 @@ const App = () => {
         anchor="right"
         open={openCart}
         onClose={() => setOpenCart(false)}
-        width="50%"
+        // TO DO fix size
       >
-        <ShoppingCart contents={cartContents} setCartContents={setCartContents} />
+        <ShoppingCart contents={cartContents} setOpenCart={setOpenCart} setCartContents={setCartContents} />
       </Drawer>
     </div>
   );
