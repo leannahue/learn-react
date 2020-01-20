@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "rbx/index.css";
-import { Tile, Container, Navbar, Button, Block } from "rbx";
+import { Tile, Container, Level, Button, Block, Message } from "rbx";
 import { Drawer } from "@material-ui/core";
 import ProductCard from "./components/ProductCard";
 import ShoppingCart from "./components/ShoppingCart";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/auth";
+import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 
 const createGrid = (
   products,
@@ -34,7 +36,9 @@ const createGrid = (
     );
     if ((index + 1) % rowSize === 0) {
       columnsGroupedByFour.push(
-        <Tile kind="ancestor" key={(index + 1) / rowSize}>{row}</Tile>
+        <Tile kind="ancestor" key={(index + 1) / rowSize}>
+          {row}
+        </Tile>
       );
       row = [];
     }
@@ -43,7 +47,7 @@ const createGrid = (
   return <Container>{columnsGroupedByFour}</Container>;
 };
 
-// Initialize Firebase
+// Initialize Firebase database
 const firebaseConfig = {
   apiKey: "AIzaSyBGg0BClIgl6Ae6FHtUhVqYQW6tOB_bEhw",
   authDomain: "learn-react-data.firebaseapp.com",
@@ -58,11 +62,36 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database().ref();
 
+// Firebase Auth
+const uiConfig = {
+  signInFlow: "popup",
+  signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
+  callbacks: {
+    signInSuccessWithAuthResult: () => false
+  }
+};
+
+const Welcome = ({ user }) => (
+  <Message color="info">
+    <Message.Header>
+      Welcome, {user.displayName}
+      <Button primary onClick={() => firebase.auth().signOut()}>
+        Log out
+      </Button>
+    </Message.Header>
+  </Message>
+);
+
+const SignIn = () => (
+  <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
+);
+
 const App = () => {
   const [data, setData] = useState({});
   const [openCart, setOpenCart] = useState(false);
   const [cartContents, setCartContents] = useState({});
   const [inventory, setInventory] = useState({});
+  const [user, setUser] = useState(null);
 
   const products = Object.values(data);
 
@@ -83,47 +112,56 @@ const App = () => {
         setInventory(snap.val());
         console.log("The database returns: " + snap);
       }
-    }
-    db.on('value', handleData, error => alert(error));
-    return () => { db.off('value', handleData); };
+    };
+    db.on("value", handleData, error => alert(error));
+    return () => {
+      db.off("value", handleData);
+    };
+  }, []);
+
+  // Get user
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged(setUser);
   }, []);
 
   return (
-    <Container>
-      <Navbar>
-        <Navbar.Segment align="end">
-          <Navbar.Item>
+    <div>
+      {user ? <Welcome user={user} /> : null}
+      <Container>
+        <Level>
+          <Level.Item align="left">{user ? null : <SignIn />}</Level.Item>
+          <Level.Item align="right">
             <Button color="primary" onClick={() => setOpenCart(true)}>
               Cart
             </Button>
-          </Navbar.Item>
-        </Navbar.Segment>
-      </Navbar>
-      <Block />
-      {createGrid(
-        products,
-        setOpenCart,
-        cartContents,
-        setCartContents,
-        inventory,
-        setInventory,
-        5
-      )}
-      <Drawer
-        anchor="right"
-        open={openCart}
-        onClose={() => setOpenCart(false)}
-        // TO DO fix size
-      >
-        <ShoppingCart
-          contents={cartContents}
-          setOpenCart={setOpenCart}
-          setCartContents={setCartContents}
-          inventory={inventory}
-          setInventory={setInventory}
-        />
-      </Drawer>
-    </Container>
+          </Level.Item>
+        </Level>
+        <Block />
+        {createGrid(
+          products,
+          setOpenCart,
+          cartContents,
+          setCartContents,
+          inventory,
+          setInventory,
+          5
+        )}
+        <Drawer
+          anchor="right"
+          open={openCart}
+          onClose={() => setOpenCart(false)}
+          // TO DO fix size
+        >
+          <ShoppingCart
+            contents={cartContents}
+            setOpenCart={setOpenCart}
+            setCartContents={setCartContents}
+            inventory={inventory}
+            setInventory={setInventory}
+          />
+        </Drawer>
+      </Container>
+    </div>
   );
 };
 
