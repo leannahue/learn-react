@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "rbx/index.css";
-import { Card, Image, Button, Title } from "rbx";
+import { Box, Image, Button, Title, Tile, Container, Block } from "rbx";
 
-const clickBuy = (
+const addProductToCart = (
   product,
   setOpenCart,
   cartContents,
@@ -51,16 +51,12 @@ const ProductCard = ({
 }) => {
   const sizes = ["S", "M", "L", "XL"];
   const [chosenSize, setSize] = useState("");
-  console.log(product.title, inventory[product.sku]);
 
   return (
-    <Card>
-      <Card.Image>
+    <Tile as={Box} kind="child">
         <Image.Container>
           <Image src={`data/products/${product.sku}_1.jpg`} />
         </Image.Container>
-      </Card.Image>
-      <Card.Content>
         <Title subtitle>{product.title}</Title>
         <p>
           {product.description}
@@ -70,7 +66,10 @@ const ProductCard = ({
         </p>
         {!inventory[product.sku] ||
         Object.values(inventory[product.sku]).every(value => value === 0) ? (
+          <Container>
+          <Block />
           <strong>Out Of Stock</strong>
+          </Container>
         ) : (
           <div>
             <br />
@@ -93,7 +92,7 @@ const ProductCard = ({
             <Button
               color="primary"
               onClick={() =>
-                clickBuy(
+                addProductToCart(
                   product,
                   setOpenCart,
                   cartContents,
@@ -105,12 +104,11 @@ const ProductCard = ({
                 )
               }
             >
-              Buy
+              Add
             </Button>
           </div>
         )}
-      </Card.Content>
-    </Card>
+    </Tile>
   );
 };
 

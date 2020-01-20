@@ -1,6 +1,6 @@
 import React from "react";
 import "rbx/index.css";
-import { Block, Title, Image, Column, Tile, Button, Delete, Level } from "rbx";
+import { Block, Title, Image, Column, Tile, Button, Delete, Level, Container } from "rbx";
 
 const removeItem = (
   product,
@@ -36,13 +36,14 @@ const ShoppingCart = ({
           <Delete onClick={() => setOpenCart(false)} />
         </Level.Item>
       </Level>
+      <Block />
       {Object.entries(contents).length === 0 ? (
         <h2>You have no items in your shopping cart</h2>
       ) : (
-        <div>
+        <Container>
           {Object.entries(contents).map(product => (
-            <Block key={product[0]}>
-              <Tile kind="ancestor">
+            // <Block key={product[0]}>
+              <Tile key={product[0]} kind="ancestor">
                 <Tile kind="parent">
                   <Image.Container>
                     <Image src={`data/products/${product[1].sku}_2.jpg`} />
@@ -73,9 +74,9 @@ const ShoppingCart = ({
                   </Block>
                 </Tile>
               </Tile>
-            </Block>
+            // </Block>
           ))}
-        </div>
+        </Container>
       )}
     </Column>
   );

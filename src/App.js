@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "rbx/index.css";
-import { Column, Container, Navbar, Button } from "rbx";
+import { Tile, Container, Navbar, Button, Block } from "rbx";
 import { Drawer } from "@material-ui/core";
 import ProductCard from "./components/ProductCard";
 import ShoppingCart from "./components/ShoppingCart";
+import firebase from "firebase/app";
+import "firebase/database";
 
 const createGrid = (
   products,
@@ -19,7 +21,7 @@ const createGrid = (
   var columnsGroupedByFour = [];
   products.forEach(product => {
     row.push(
-      <Column key={product.sku}>
+      <Tile kind="parent" key={product.sku}>
         <ProductCard
           product={product}
           inventory={inventory}
@@ -28,11 +30,11 @@ const createGrid = (
           setCartContents={setCartContents}
           setInventory={setInventory}
         />
-      </Column>
+      </Tile>
     );
     if ((index + 1) % rowSize === 0) {
       columnsGroupedByFour.push(
-        <Column.Group key={(index + 1) / rowSize}>{row}</Column.Group>
+        <Tile kind="ancestor" key={(index + 1) / rowSize}>{row}</Tile>
       );
       row = [];
     }
@@ -41,43 +43,30 @@ const createGrid = (
   return <Container>{columnsGroupedByFour}</Container>;
 };
 
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBGg0BClIgl6Ae6FHtUhVqYQW6tOB_bEhw",
+  authDomain: "learn-react-data.firebaseapp.com",
+  databaseURL: "https://learn-react-data.firebaseio.com",
+  projectId: "learn-react-data",
+  storageBucket: "learn-react-data.appspot.com",
+  messagingSenderId: "884246629473",
+  appId: "1:884246629473:web:986780504a1f59ac642e20",
+  measurementId: "G-19JTWKZ2R6"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref();
+
 const App = () => {
   const [data, setData] = useState({});
   const [openCart, setOpenCart] = useState(false);
   const [cartContents, setCartContents] = useState({});
-  const [inventory, setInventory] = useState({
-    "12064273040195392": {
-      S: 0,
-      M: 3,
-      L: 1,
-      XL: 2
-    },
-    "10412368723880252": {
-      S: 3,
-      M: 2,
-      L: 2,
-      XL: 2
-    },
-    "8552515751438644": {
-      S: 2,
-      M: 0,
-      L: 0,
-      XL: 2
-    },
-    "18644119330491310": {
-      S: 3,
-      M: 3,
-      L: 2,
-      XL: 0
-    },
-    "27250082398145996": {
-      S: 1,
-      M: 0,
-      L: 0,
-      XL: 2
-    }
-  });
+  const [inventory, setInventory] = useState({});
+
   const products = Object.values(data);
+
+  // Get products
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await fetch("./data/products.json");
@@ -87,8 +76,20 @@ const App = () => {
     fetchProducts();
   }, []);
 
+  // Get inventory
+  useEffect(() => {
+    const handleData = snap => {
+      if (snap.val()) {
+        setInventory(snap.val());
+        console.log("The database returns: " + snap);
+      }
+    }
+    db.on('value', handleData, error => alert(error));
+    return () => { db.off('value', handleData); };
+  }, []);
+
   return (
-    <div>
+    <Container>
       <Navbar>
         <Navbar.Segment align="end">
           <Navbar.Item>
@@ -98,6 +99,7 @@ const App = () => {
           </Navbar.Item>
         </Navbar.Segment>
       </Navbar>
+      <Block />
       {createGrid(
         products,
         setOpenCart,
@@ -121,7 +123,7 @@ const App = () => {
           setInventory={setInventory}
         />
       </Drawer>
-    </div>
+    </Container>
   );
 };
 
