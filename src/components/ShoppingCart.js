@@ -2,16 +2,30 @@ import React from "react";
 import "rbx/index.css";
 import { Block, Title, Image, Column, Tile, Button, Delete, Level } from "rbx";
 
-const removeItem = (product, contents, setCartContents) => {
-  console.log("contents", contents);
-  console.log("remove this ", product[0]);
+const removeItem = (
+  product,
+  contents,
+  setCartContents,
+  inventory,
+  setInventory
+) => {
+  // Update inventory
+  inventory[product[1].sku][product[1].size] += product[1].quantity;
+  setInventory(inventory);
+
+  // Remove item from cart
   const updatedCart = Object.assign({}, contents);
   delete updatedCart[product[0]];
-  console.log("updated cart", updatedCart);
   setCartContents(updatedCart);
 };
 
-const ShoppingCart = ({ contents, setOpenCart, setCartContents }) => {
+const ShoppingCart = ({
+  contents,
+  setOpenCart,
+  setCartContents,
+  inventory,
+  setInventory
+}) => {
   return (
     <Column size="full">
       <Level>
@@ -19,7 +33,7 @@ const ShoppingCart = ({ contents, setOpenCart, setCartContents }) => {
           <Title as="p">Shopping Cart</Title>
         </Level.Item>
         <Level.Item align="right">
-          <Delete onClick={() => setOpenCart(false)}/>
+          <Delete onClick={() => setOpenCart(false)} />
         </Level.Item>
       </Level>
       {Object.entries(contents).length === 0 ? (
@@ -45,7 +59,13 @@ const ShoppingCart = ({ contents, setOpenCart, setCartContents }) => {
                     <Button
                       color="danger"
                       onClick={() =>
-                        removeItem(product, contents, setCartContents)
+                        removeItem(
+                          product,
+                          contents,
+                          setCartContents,
+                          inventory,
+                          setInventory
+                        )
                       }
                     >
                       Remove
