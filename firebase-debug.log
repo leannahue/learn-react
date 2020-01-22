@@ -1,0 +1,54 @@
+[debug] [2020-01-22T04:46:52.160Z] ----------------------------------------------------------------------
+[debug] [2020-01-22T04:46:52.162Z] Command:       /usr/local/bin/firebase /Users/leannahue/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase deploy
+[debug] [2020-01-22T04:46:52.162Z] CLI Version:   7.11.0
+[debug] [2020-01-22T04:46:52.162Z] Platform:      darwin
+[debug] [2020-01-22T04:46:52.162Z] Node Version:  v10.17.0
+[debug] [2020-01-22T04:46:52.167Z] Time:          Tue Jan 21 2020 22:46:52 GMT-0600 (Central Standard Time)
+[debug] [2020-01-22T04:46:52.167Z] ----------------------------------------------------------------------
+[debug] [2020-01-22T04:46:52.167Z] 
+[debug] [2020-01-22T04:46:52.176Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-01-22T04:46:52.176Z] > authorizing via signed-in user
+[debug] [2020-01-22T04:46:52.176Z] [iam] checking project learn-react-data for permissions ["firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]
+[debug] [2020-01-22T04:46:52.178Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/learn-react-data:testIamPermissions  
+
+[debug] [2020-01-22T04:46:52.442Z] <<< HTTP RESPONSE 200
+[debug] [2020-01-22T04:46:52.443Z] >>> HTTP REQUEST GET https://firebase.googleapis.com/v1beta1/projects/learn-react-data  
+ 
+[debug] [2020-01-22T04:46:52.620Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'learn-react-data'...
+[info] 
+[info] i  deploying database, hosting
+[info] i  database: checking rules syntax...
+[debug] [2020-01-22T04:46:52.624Z] >>> HTTP REQUEST PUT https://learn-react-data.firebaseio.com/.settings/rules.json?dryRun=true  
+ {
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+[debug] [2020-01-22T04:46:52.855Z] <<< HTTP RESPONSE 200
+[info] ✔  database: rules syntax for database learn-react-data is valid
+[debug] [2020-01-22T04:46:52.856Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/learn-react-data/versions  
+
+[debug] [2020-01-22T04:46:53.847Z] <<< HTTP RESPONSE 200
+[info] i  hosting[learn-react-data]: beginning deploy...
+[info] i  hosting[learn-react-data]: found 61 files in build
+[debug] [2020-01-22T04:46:54.400Z] [hosting] hash cache [YnVpbGQ] stored for 61 files
+[debug] [2020-01-22T04:46:54.400Z] [hosting][hash queue][FINAL]
+[debug] [2020-01-22T04:46:54.400Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/learn-react-data/versions/a35fff957d9f8d09:populateFiles  
+ <request body omitted>
+[debug] [2020-01-22T04:46:55.798Z] <<< HTTP RESPONSE 200
+[debug] [2020-01-22T04:46:55.803Z] [hosting][populate queue][FINAL]
+[debug] [2020-01-22T04:46:55.803Z] [hosting] uploads queued: 6
+[debug] [2020-01-22T04:46:56.804Z] [hosting][upload queue][FINAL]
+[info] ✔  hosting[learn-react-data]: file upload complete
+[debug] [2020-01-22T04:46:56.804Z] [hosting] deploy completed after 2957ms
+[info] i  database: releasing rules...
+[debug] [2020-01-22T04:46:56.949Z] >>> HTTP REQUEST PUT https://learn-react-data.firebaseio.com/.settings/rules.json  
+ {
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}

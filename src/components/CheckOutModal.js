@@ -1,7 +1,7 @@
 import React from "react";
 import firebase from "firebase/app";
 import "rbx/index.css";
-import { Modal, Content } from "rbx";
+import { Modal, Content, Button } from "rbx";
 
 const checkOutCart = (
   user,
@@ -52,10 +52,11 @@ const CheckOutModal = ({
     <Modal active={activeCheckOutModal} closeOnBlur={true}>
       <Modal.Background />
       <Modal.Card>
+        <Modal.Card.Head>Check Out</Modal.Card.Head>
         <Modal.Card.Body>
           <Content>
             <p>
-              <strong>You have purchased these items.</strong>
+              <strong>You are purchasing these items.</strong>
               {Object.values(contents).map(product => (
                 <li>
                   {product.title} ({product.size}): {product.quantity}
@@ -64,18 +65,25 @@ const CheckOutModal = ({
             </p>
           </Content>
         </Modal.Card.Body>
-        <Modal.Close
-          onClick={() =>
-            checkOutCart(
-              user,
-              contents,
-              setCartContents,
-              inventory,
-              setInventory,
-              setActiveCheckOutModal
-            )
-          }
-        />
+        <Modal.Card.Foot>
+          <Button
+            color="success"
+            onClick={() =>
+              checkOutCart(
+                user,
+                contents,
+                setCartContents,
+                inventory,
+                setInventory,
+                setActiveCheckOutModal
+              )
+            }
+          >
+            Finish Checking Out
+          </Button>
+          <Button onClick={() => setActiveCheckOutModal(false)}>Cancel</Button>
+        </Modal.Card.Foot>
+        <Modal.Close onClick={() => setActiveCheckOutModal(false)} />
       </Modal.Card>
     </Modal>
   );
