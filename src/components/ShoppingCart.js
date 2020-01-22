@@ -48,8 +48,10 @@ const ShoppingCart = ({
   setOpenCart,
   setCartContents,
   inventory,
-  setInventory
+  setInventory,
+  setActiveCheckOutModal
 }) => {
+
   return (
     <Column size="full">
       <Level>
@@ -66,7 +68,6 @@ const ShoppingCart = ({
       ) : (
         <Container>
           {Object.entries(contents).map(product => (
-            // <Block key={product[0]}>
             <Tile key={product[0]} kind="ancestor">
               <Tile kind="parent">
                 <Image.Container>
@@ -98,8 +99,17 @@ const ShoppingCart = ({
                 </Block>
               </Tile>
             </Tile>
-            // </Block>
           ))}
+          <Button
+            color="primary"
+            align="centered"
+            onClick={() => {
+              setActiveCheckOutModal(true);
+              setOpenCart(false);
+            }}
+          >
+            Check Out
+          </Button>
         </Container>
       )}
     </Column>

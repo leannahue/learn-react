@@ -9,6 +9,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
+import CheckOutModal from "./components/CheckOutModal";
 
 // Initialize Firebase database
 const firebaseConfig = {
@@ -58,6 +59,7 @@ const App = () => {
   const [activeModal, setActiveModal] = useState(false);
   const [outOfStockItems, setOutOfStockItems] = useState({});
   const [limitedQuanityItems, setLimitedQuanityItems] = useState({});
+  const [activeCheckOutModal, setActiveCheckOutModal] = useState(false);
 
   const products = Object.values(data);
 
@@ -153,13 +155,14 @@ const App = () => {
             .update({
               [user.uid]: updatedCart
             });
-          
+
           // Update inventory
           var newInventory = snap.val();
           Object.keys(updatedCart).forEach(product_key => {
             const product_sku = updatedCart[product_key]["sku"];
             const product_size = updatedCart[product_key]["size"];
-            newInventory[product_sku][product_size] -= updatedCart[product_key]["quantity"];
+            newInventory[product_sku][product_size] -=
+              updatedCart[product_key]["quantity"];
           });
           setInventory(newInventory);
         }
@@ -200,6 +203,15 @@ const App = () => {
           limitedQuanityItems={limitedQuanityItems}
           setActiveModal={setActiveModal}
         />
+        <CheckOutModal
+          user={user}
+          contents={cartContents}
+          setCartContents={setCartContents}
+          inventory={inventory}
+          setInventory={setInventory}
+          activeCheckOutModal={activeCheckOutModal}
+          setActiveCheckOutModal={setActiveCheckOutModal}
+        />
         <Drawer
           anchor="right"
           open={openCart}
@@ -212,6 +224,7 @@ const App = () => {
             setCartContents={setCartContents}
             inventory={inventory}
             setInventory={setInventory}
+            setActiveCheckOutModal={setActiveCheckOutModal}
           />
         </Drawer>
       </Container>
