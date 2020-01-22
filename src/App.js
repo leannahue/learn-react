@@ -1,51 +1,14 @@
 import React, { useEffect, useState } from "react";
 import "rbx/index.css";
-import { Tile, Container, Level, Button, Block, Message } from "rbx";
+import { Container, Level, Button, Block, Message } from "rbx";
 import { Drawer } from "@material-ui/core";
-import ProductCard from "./components/ProductCard";
+import ProductGrid from "./components/ProductGrid";
 import ShoppingCart from "./components/ShoppingCart";
+import UpdatedCartModal from "./components/UpdatedCartModal";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-
-const createGrid = (
-  products,
-  setOpenCart,
-  cartContents,
-  setCartContents,
-  inventory,
-  setInventory,
-  rowSize
-) => {
-  var index = 0;
-  var row = [];
-  var columnsGroupedByFour = [];
-  products.forEach(product => {
-    row.push(
-      <Tile kind="parent" key={product.sku}>
-        <ProductCard
-          product={product}
-          inventory={inventory}
-          setOpenCart={setOpenCart}
-          cartContents={cartContents}
-          setCartContents={setCartContents}
-          setInventory={setInventory}
-        />
-      </Tile>
-    );
-    if ((index + 1) % rowSize === 0) {
-      columnsGroupedByFour.push(
-        <Tile kind="ancestor" key={(index + 1) / rowSize}>
-          {row}
-        </Tile>
-      );
-      row = [];
-    }
-    index += 1;
-  });
-  return <Container>{columnsGroupedByFour}</Container>;
-};
 
 // Initialize Firebase database
 const firebaseConfig = {
@@ -92,6 +55,9 @@ const App = () => {
   const [cartContents, setCartContents] = useState({});
   const [inventory, setInventory] = useState({});
   const [user, setUser] = useState(null);
+  const [activeModal, setActiveModal] = useState(false);
+  const [outOfStockItems, setOutOfStockItems] = useState({});
+  const [limitedQuanityItems, setLimitedQuanityItems] = useState({});
 
   const products = Object.values(data);
 
@@ -110,10 +76,9 @@ const App = () => {
     const handleData = snap => {
       if (snap.val()) {
         setInventory(snap.val());
-        console.log("The database returns: " + snap);
       }
     };
-    db.on("value", handleData, error => alert(error));
+    db.once("value", handleData, error => alert(error));
     return () => {
       db.off("value", handleData);
     };
@@ -123,6 +88,88 @@ const App = () => {
   useEffect(() => {
     firebase.auth().onAuthStateChanged(setUser);
   }, []);
+
+  // Update current cart with old cart after sign in
+  useEffect(() => {
+    if (user) {
+      const handleData = snap => {
+        if (snap.val() && snap.val()["cart"] && snap.val()["cart"][user.uid]) {
+          var oldCart = snap.val()["cart"][user.uid];
+          var updatedCart = {};
+
+          // Copy over old cart and update prices
+          Object.keys(oldCart).forEach(product_key => {
+            updatedCart[product_key] = Object.assign({}, oldCart[product_key]);
+            if (cartContents[product_key]) {
+              updatedCart[product_key]["quantity"] =
+                oldCart[product_key]["quantity"] +
+                cartContents[product_key]["quantity"];
+            }
+          });
+
+          // Copy over the rest of current cart contents
+          Object.keys(cartContents).forEach(product_key => {
+            if (!updatedCart[product_key]) {
+              updatedCart[product_key] = Object.assign(
+                {},
+                cartContents[product_key]
+              );
+            }
+          });
+
+          // Check inventory
+          var outOfStock = {};
+          var reducedQuantity = {};
+          Object.keys(updatedCart).forEach(product_key => {
+            const product_sku = updatedCart[product_key]["sku"];
+            const product_size = updatedCart[product_key]["size"];
+            const inventory_quantity = snap.val()[product_sku][product_size];
+            if (inventory_quantity === 0) {
+              outOfStock[product_key] = updatedCart[product_key];
+              delete updatedCart[product_key];
+            } else if (
+              updatedCart[product_key]["quantity"] > inventory_quantity
+            ) {
+              reducedQuantity[product_key] = updatedCart[product_key];
+              updatedCart[product_key]["quantity"] = inventory_quantity;
+            }
+          });
+
+          // Open modal if out of stock or reduced quantity items
+          if (
+            Object.keys(outOfStock).length !== 0 ||
+            Object.keys(reducedQuantity).length !== 0
+          ) {
+            setLimitedQuanityItems(reducedQuantity);
+            setOutOfStockItems(outOfStock);
+            setActiveModal(true);
+          }
+
+          // Update cart
+          setCartContents(updatedCart);
+          firebase
+            .database()
+            .ref("cart")
+            .update({
+              [user.uid]: updatedCart
+            });
+          
+          // Update inventory
+          var newInventory = snap.val();
+          Object.keys(updatedCart).forEach(product_key => {
+            const product_sku = updatedCart[product_key]["sku"];
+            const product_size = updatedCart[product_key]["size"];
+            newInventory[product_sku][product_size] -= updatedCart[product_key]["quantity"];
+          });
+          setInventory(newInventory);
+        }
+      };
+      db.once("value", handleData, error => alert(error));
+      return () => {
+        db.off("value", handleData);
+      };
+    }
+  }, [user]);
 
   return (
     <div>
@@ -137,22 +184,29 @@ const App = () => {
           </Level.Item>
         </Level>
         <Block />
-        {createGrid(
-          products,
-          setOpenCart,
-          cartContents,
-          setCartContents,
-          inventory,
-          setInventory,
-          5
-        )}
+        <ProductGrid
+          user={user}
+          products={products}
+          setOpenCart={setOpenCart}
+          cartContents={cartContents}
+          setCartContents={setCartContents}
+          inventory={inventory}
+          setInventory={setInventory}
+          rowSize={5}
+        />
+        <UpdatedCartModal
+          activeModal={activeModal}
+          outOfStockItems={outOfStockItems}
+          limitedQuanityItems={limitedQuanityItems}
+          setActiveModal={setActiveModal}
+        />
         <Drawer
           anchor="right"
           open={openCart}
           onClose={() => setOpenCart(false)}
-          // TO DO fix size
         >
           <ShoppingCart
+            user={user}
             contents={cartContents}
             setOpenCart={setOpenCart}
             setCartContents={setCartContents}
